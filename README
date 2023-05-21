@@ -1,0 +1,11 @@
+This test is my submission for the May 2023 First Derivatives coding test given to the engineering team. 
+
+To run, simply run the scripts in each folder in the following order:
+1. feeds
+2. Pricer
+3. realtimeAvgPricer
+
+Every second, the pricer script will call the Feed Generator for a new row of feeds for feed1 and feed2. Feed 3 is 30 rows of data that is loaded upon connection.
+The feeds are parsed, updated to match types, and upserted into the initialized tables trade1 and trade2 for feed 1 and 2 respectively.
+Immediately afterward, the latest row is used to calculate the price of the instrument and upserted into tables price1 and price2. The same is done with price3 but all upon connection.
+The last script calls the 2nd process every 10 seconds and performs a simple set of queries to find the rolling average and the average price by 5 minute buckets. 
