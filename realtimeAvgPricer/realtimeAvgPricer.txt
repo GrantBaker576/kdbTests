@@ -1,0 +1,20 @@
+/*************************	IPC		**********************************************
+
+h:hopen 4321;
+
+/*************************	Reference		**********************************************
+
+currencyConverter:(`EUR`GBP`USD)!(1.08 1.25 1)
+
+/*************************	Data Analysis		**********************************************
+
+/realtime average price for instruments per accountGroup in USD
+realtimepricePerGroup:{data:h"price1 uj price2 uj price3";:select priceUSD:avg currencyConverter[billingCurrency]*price by accountGroup from data};
+
+/rolling average price of 5 min intervals for instruments per accountGroup in USD
+rollingPricePerGroup:{data:h"price1 uj price2 uj price3";:select priceUSD:avg currencyConverter[billingCurrency]*price by accountGroup,5 xbar time.minute from data};
+
+/*************************	Timer		**********************************************
+
+\t 10000
+.z.ts:{show realtimepricePerGroup[];show rollingPricePerGroup[]};

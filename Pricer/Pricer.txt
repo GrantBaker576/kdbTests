@@ -1,0 +1,32 @@
+/*************************	Initialization		**********************************************
+
+trade1:([]RA:`float$();NP:`float$();P:`long$();Y:`long$();batchId:`$();time:`time$();accountRef:`$();uniqueId:`$();marketName:`$();instrumentType:`$();R:`float$());
+trade2:([]RA:`float$();NP:`float$();P:`long$();Y:`long$();batchId:`$();time:`time$();accountRef:`$();uniqueId:`$();marketName:`$();instrumentType:`$();R:`float$());
+
+price1:([]time:`time$();billingCurrency:`$();accountGroup:`$();uniqueId:`$();instrumentType:`$();marketName:`$();accountRef:`$();price:`float$());
+price2:([]time:`time$();billingCurrency:`$();accountGroup:`$();uniqueId:`$();instrumentType:`$();marketName:`$();accountRef:`$();price:`float$());
+
+/*************************	Reference		**********************************************
+
+currencyDict:h"currencyDict"
+refTable:h"refTable"
+
+/*************************	Pricers		**********************************************
+
+/feed 1 and 2 are delta processing, so I price them as they come in
+feed1Pricer:{select time, billingCurrency:currencyDict[marketName], accountGroup:first value flip refTable?/:accountRef, uniqueId, instrumentType, marketName, accountRef, price:((R-RA)*NP * P%Y)*(1%(1+(R*P%Y))) from -1 sublist trade1}
+feed2Pricer:{select time, billingCurrency:currencyDict[marketName], accountGroup:first value flip refTable?/:accountRef, uniqueId, instrumentType, marketName, accountRef, price:((R-RA)*NP * P%Y)*(1%(1+(R*P%Y))) from -1 sublist trade2}
+feed3Pricer:{select time, billingCurrency, accountGroup, uniqueId, instrumentType, marketName, accountRef, price:((R-RA)*NP * P%Y)*(1%(1+(R*P%Y))) from trade3}
+
+/*************************	IPC		**********************************************
+
+/since feed3 is once per day, I can run pricer when connection opens
+.z.po:{	`trade3 set ("FFJJSTSSSSSDSFS";enlist",") 0: h"feed3Gen[]";`price3 set feed3Pricer[];}
+
+h:hopen 1234;
+\p 4321;
+
+/*************************	Timer		**********************************************
+
+\t 1000
+.z.ts:{`trade1 upsert ("FFJJSTSSSSF";enlist" ") 0: h"feed1Gen[]"; `trade2 upsert update P:`long$P,Y:`long$Y,batchId:`$batchId, time:"T"$time,accountRef:`$accountRef,uniqueId:`$uniqueId,marketName:`$marketName,instrumentType:`$instrumentType from .j.k h"feed2Gen[]";`price1 set price1 upsert feed1Pricer[];`price2 set price2 upsert feed2Pricer[];};

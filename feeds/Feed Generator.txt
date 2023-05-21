@@ -1,0 +1,46 @@
+/*************************	Helper Functions	**********************************************
+/returns random number within a range, mean at midpoint
+randNumGen:{[low;high]neg[low]+sum (high-low)?1f}
+
+/returns uniformly distributed number
+unifGen:{[low;high]neg[low]+(high-low)* rand 1f}
+
+/returns random interest rate, mean at 2.5%
+RAgen:{randNumGen[0;5]%100}
+
+/returns LIBOR spread, random uniform between 0 and 1%
+LIBORspreadGen:{(rand 1f)%100}
+
+/returns notional principal of money, between 1 and 100 million
+NPgen:{unifGen[1000000;100000000]}
+
+/returns period, number of days in contract period up to 360
+pGen:{rand 360}
+
+/returns days in the year according to day-count convention, 360 or 365
+yGen:{rand(360;365)}
+
+/returns a list of x 10 character alphanumeric symbols
+idGen:{`$10 cut (10*x)?.Q.an}
+
+/*************************	Reference Data		**********************************************
+
+currencyDict:(`Frankfurt`London`US)!(`EUR`GBP`USD)
+
+instrumentTypes:`ETF`CD`STOCK`MF
+
+clientNames:`Jeff`Steve`Sue`Mary`Jason
+
+refTable:1!([]accountGroup:`grX`grY`grZ`grX`grY`grZ;accountRef:`000000001`000000002`000000003`000000004`000000005`000000006)
+
+/*************************	Feed Generators		**********************************************
+
+feed1Gen:{trade:([]RA:enlist RAgen[];NP:enlist NPgen[];P:enlist pGen[];Y:enlist yGen[];batchId:idGen[1];time:enlist .z.t;accountRef:value rand value refTable;uniqueId:idGen[1];marketName:enlist `Frankfurt;instrumentType:enlist rand instrumentTypes);	trade:update R:RA+LIBORspreadGen[] from trade;	:" " 0: trade	};
+
+feed2Gen:{trade:([]RA:enlist RAgen[];NP:enlist NPgen[];P:enlist pGen[];Y:enlist yGen[];batchId:idGen[1];time:enlist .z.t;accountRef:value rand value refTable;uniqueId:idGen[1];marketName:enlist `London;instrumentType:enlist rand instrumentTypes);	trade:update R:RA+LIBORspreadGen[] from trade;	:.j.j trade	};
+
+feed3Gen:{trade:([]RA:30?RAgen[];NP:30?NPgen[];P:30?pGen[];Y:30?`360`365;batchId:idGen[30];time:30?.z.t;accountRef:30#exec accountRef from refTable;uniqueId:idGen[30];marketName:30?`Frankfurt`London`US;instrumentType:30?instrumentTypes;clientName:30?clientNames;modifiedDate:30#(.z.D-1));trade:update billingCurrency:currencyDict[marketName] from trade;LIBOR:LIBORspreadGen[];trade:update R:RA+LIBOR from trade;trade:update accountGroup:first value flip refTable?/:accountRef from trade;:csv 0: trade	};
+
+/*************************	IPC		**********************************************
+
+\p 1234

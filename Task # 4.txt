@@ -1,0 +1,3 @@
+If data is to be fed to an algorithmic Q process for computationally expensive operations, the process should make us of asynchronous IPC so that the server does not have to wait on a response.
+This data can be published when an event occurs, on a heartbeat setup, a batch setup, or using websockets to avoid API polling. 
+The expensive operations can be distributed across multiple machines or cloud environments to speed up the calculations, allowing the server to work in parallel. 
